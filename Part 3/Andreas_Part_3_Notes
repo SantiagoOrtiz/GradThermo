@@ -1,0 +1,4 @@
+The code I wrote is standalone, so when combining it we'll need to add something to run it twice for P1,T1 and P2,T2 and to pull values from the database 
+/ prompt the user for inputs as desired, etc.  But we do not want to make this more complicated (i.e. add more molecules) than what is expeditious, right?
+
+I checked these calculations in MS Excel & confirmed that U - TS = A.  Also, U2 - U1 ~= Cv*(T2-T1).  We can try the integral if we feel the need to confirm this further.  
