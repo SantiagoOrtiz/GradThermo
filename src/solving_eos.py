@@ -21,20 +21,26 @@ class EOS:
         self.ω = db_dict[molecule]['ω']
         self.Tc = db_dict[molecule]['Tc']
         self.Pc = db_dict[molecule]['Pc']
-    
-    def __α(self, T, ω, Tc):
-            Tr = T/Tc
-            ωpol = 0.37464 + 1.5422*ω - 0.26992*np.power(ω, 2)
-            alpha = np.power(1 + (1 - np.sqrt(Tr))*ωpol, 2)
-            return alpha
         
-    def __PengRobinson(self, ʋ, T, P, R=8.314):
-        ω=self.ω; Tc=self.Tc; Pc=self.Pc
-                
-        a = 0.45724 * (np.power(R, 2)*np.power(Tc, 2))/Pc
-        b = 0.07780 * R*Tc/Pc
+    def __a(self, R):
+        return 0.45724 * (np.power(R, 2)*np.power(self.Tc, 2))/self.Pc
+        
+    def __b(self, R):
+        return 0.07780 * R*self.Tc/self.Pc
+    
+    def __fω(self):
+        return 0.37464 + 1.5422*self.ω - 0.26992*np.power(self.ω, 2)
+    
+    def __α(self, T):
+        Tr = T/self.Tc
+        ωpol = self.__fω()
+        return np.power(1 + (1 - np.sqrt(Tr))*ωpol, 2)
+        
+    def __PengRobinson(self, ʋ, T, P, R=8.314):               
+        a = self.__a(R)
+        b = self.__b(R)
         ʋpol = np.power(ʋ, 2) + 2*b*ʋ - np.power(b, 2)
-        f = (R*T)/(ʋ - b) - a*self.__α(T, ω, Tc)/ʋpol - P
+        f = (R*T)/(ʋ - b) - a*self.__α(T)/ʋpol - P
         return f
 
     def solve_eos(self, T_, P_, ʋ0=1.0E-2, R=8.314):
