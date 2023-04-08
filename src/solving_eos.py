@@ -22,7 +22,7 @@ class EOS:
         self.Tc = db_dict[molecule]['Tc']
         self.Pc = db_dict[molecule]['Pc']
     
-    def α(T, ω, Tc):
+    def __α(self, T, ω, Tc):
             Tr = T/Tc
             ωpol = 0.37464 + 1.5422*ω - 0.26992*np.power(ω, 2)
             alpha = np.power(1 + (1 - np.sqrt(Tr))*ωpol, 2)
@@ -34,20 +34,29 @@ class EOS:
         a = 0.45724 * (np.power(R, 2)*np.power(Tc, 2))/Pc
         b = 0.07780 * R*Tc/Pc
         ʋpol = np.power(ʋ, 2) + 2*b*ʋ - np.power(b, 2)
-        f = (R*T)/(ʋ - b) - a*self.α(T, ω, Tc)/ʋpol - P
+        f = (R*T)/(ʋ - b) - a*self.__α(T, ω, Tc)/ʋpol - P
         return f
 
-    def solve_eos(self, T, P, ʋ0=1.0E-2, R=8.314):
-        if (type(T) != list) or (type(P) != list):
-            T = np.array([T])
-            P = np.array([P])
-            
+    def solve_eos(self, T_, P_, ʋ0=1.0E-2, R=8.314):
+        
+        if (type(T_) != list) or (type(P_) != list):
+            T = np.ravel(np.array([T_]))
+            P = np.ravel(np.array([P_]))
+        else:
+            T = np.ravel(T_)
+            P = np.ravel(P_)
+        
         ʋ_solution = np.zeros_like(T, float)
-        for i, (Ti, Pi) in enumerate(zip(T, P)):
+        
+        def fsolvei(self, Ti, Pi, ʋ0, R):
             eos = lambda ʋ: self.__PengRobinson(ʋ, Ti, Pi, R)
-            ʋ_solution[i] = fsolve(eos, ʋ0)[0]
-            ʋ0 = ʋ_solution[i]
-        return ʋ_solution
+            ʋ_solution = fsolve(eos, ʋ0)[0]
+            return ʋ_solution
+        
+        for i, (Ti, Pi) in enumerate(zip(T, P)):
+            ʋ_solution[i] = ʋ0 = fsolvei(self, Ti, Pi, ʋ0, R)
+            
+        return np.reshape(ʋ_solution, np.shape(T_))
     
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P)
