@@ -86,12 +86,12 @@ class EOS:
         return np.reshape(ʋ_solution, np.shape(T_))
 
 
-    def ΔS_dep(self, P, T, R):
+    def ΔS_dep(self, P, T, R=8.314):
         
         ʋ = self.solve_eos(T, P)
         fʋ = lambda ʋ: self.__dPdT(ʋ, T, R) - R/ʋ
-        intʋ = quad(fʋ, 0.0, ʋ)  # np.Infinity
-        ΔS = intʋ + R*np.log(self.__Z(ʋ, P, T, R))
+        intʋ = quad(fʋ, np.Infinity, ʋ)
+        ΔS = intʋ[0] + R*np.log(self.__Z(ʋ, P, T, R))
         return ΔS
     
     
