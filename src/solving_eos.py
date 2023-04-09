@@ -160,7 +160,7 @@ class EOS:
         return Hig
 
     def G_ig(self, T, P, R=8.3144598):
-        Gig = self.H_ig(P, R) - T*self.S_ig(T, P)
+        Gig = self.H_ig(T, P, R) - T*self.S_ig(T, P)
         return Gig
 
     def check_SMEq(self, T, P):
