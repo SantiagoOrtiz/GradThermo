@@ -165,7 +165,7 @@ class EOS:
         return Gig
 
     def check_SMEq(self, T, P):
-        Gig_check = (self.A_ig(T) + P*self.ʋ_ig(T, P))/self.G_ig(T, P)-1
+        Gig_check = (self.A_ig(T, P) + P*self.ʋ_ig(T, P))/self.G_ig(T, P)-1
         print('Difference in G, from U v. A calculations (potential error): ',Gig_check) #should equal zero
         print('')
         print('Ideal Gas Thermodynamic values for Chloromethane:')
@@ -206,5 +206,5 @@ class EOS:
         return self.ΔH_real(T, P) - T*self.ΔS_real(T, P)
         
     def get__PengRobinson(self):
-        peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P)
+        peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.314)
         return peng_robinson
