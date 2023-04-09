@@ -143,11 +143,7 @@ class EOS:
 
     def S_ig(self, T, P, h=6.62607E-34, k=1.38065E-23, Na=6.02214E+23, R=8.3144598):
         mw = self.mw; Or = self.Or; sig = self.sig; Wo = self.Wo
-<<<<<<< HEAD
-        vig = self.__ʋ_ig(T, P, R)
-=======
         vig = self.ʋ_ig(T, P, R)
->>>>>>> 501c1e5df0a860d61d0f2b0484d5fc807e9888eb
         svib = self.__Svib(T)
         Sig = R*( np.log( (2*np.pi*mw*k*T/(h**2))**(3/2) * (vig*np.exp(5/2)/Na))
                  + np.log( ((1/sig)*(np.pi*(T**3)*np.exp(3)/(Or[0]*Or[1]*Or[2]))**0.5) ) 
@@ -159,12 +155,6 @@ class EOS:
         uvib = self.__Uvib(T)
         return 3/2*R*T+3/2*R*T-Do*4184+R*T*np.sum(uvib)
 
-<<<<<<< HEAD
-    def __ʋ_ig(self, T, P, R=8.3144598):
-        return R*T/P
-
-=======
->>>>>>> 501c1e5df0a860d61d0f2b0484d5fc807e9888eb
     def H_ig(self, T, P, R=8.3144598):
         Hig = self.U_ig(T, R) + P*self.__ʋ_ig(T, P, R)
         return Hig
