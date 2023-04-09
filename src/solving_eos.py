@@ -136,12 +136,12 @@ class EOS:
                   +  R*T*np.log( (1/sig)*((np.pi*(T**3)/(Or[0]*Or[1]*Or[2]))**(1/2)))
                   + Do*4184 - R*T*np.sum(avib) + np.log(Wo)*R*T )
 
-    def Cv_ig(self, T, R=8.3144598):
+    def Cvig_SM(self, T, R=8.3144598):
         return R*(3/2+3/2+np.sum(self.__Cv_vib(T)))
 
     def S_ig(self, T, P, h=6.62607E-34, k=1.38065E-23, Na=6.02214E+23, R=8.3144598):
         mw = self.mw; Or = self.Or; sig = self.sig; Wo = self.Wo
-        vig = self.__ʋig(T, P, R)
+        vig = self.__ʋ_ig(T, P, R)
         svib = self.__Svib(T)
         Sig = R*( np.log( (2*np.pi*mw*k*T/(h**2))**(3/2) * (vig*np.exp(5/2)/Na))
                  + np.log( ((1/sig)*(np.pi*(T**3)*np.exp(3)/(Or[0]*Or[1]*Or[2]))**0.5) ) 
@@ -153,11 +153,11 @@ class EOS:
         uvib = self.__Uvib(T)
         return 3/2*R*T+3/2*R*T-Do*4184+R*T*np.sum(uvib)
 
-    def ʋ_ig(self, T, P, R=8.3144598):
+    def __ʋ_ig(self, T, P, R=8.3144598):
         return R*T/P
 
     def H_ig(self, T, P, R=8.3144598):
-        Hig = self.Uig(T, R) + P*self.ʋ_ig(T, P, R)
+        Hig = self.U_ig(T, R) + P*self.__ʋ_ig(T, P, R)
         return Hig
 
     def G_ig(self, T, P, R=8.3144598):
@@ -200,10 +200,21 @@ class EOS:
     def ΔS_real(self, T, P, R = 8.314):
         T1,T2 = T
         P1,P2 = P
-        return -self.ΔS_dep(T1,P1) + self.ΔS_ig(T) + self.ΔS_dep(T2,P2) 
+        return -self.ΔS_dep(T1,P1) + self.ΔS_ig(T,P) + self.ΔS_dep(T2,P2) 
     
     def ΔG_real(self,T, P, R = 8.314):
-        return self.ΔH_real(T, P) - T*self.ΔS_real(T, P)
+        T1, T2 = T
+        P1, P2 = P
+        
+        delHT1 = self.H_ig(T1, P1) + self.ΔH_dep(T1, P1)
+        delST1 = self.S_ig(T1,P1) + self.ΔS_dep(T1, P1)
+        delGT1 = delHT1 - T1*delST1
+        
+        delHT2 = self.H_ig(T2, P2) + self.ΔH_dep(T2, P2)
+        delST2 = self.S_ig(T2,P2) + self.ΔS_dep(T2, P2)
+        delGT2 = delHT2 - T2*delST2
+                
+        return   delGT2 - delGT1
         
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.314)
