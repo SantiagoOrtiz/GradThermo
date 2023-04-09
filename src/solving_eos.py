@@ -173,7 +173,7 @@ class EOS:
         print('Hig:',round(self.H_ig(T, P)/1000,2),'kJ/mol')
         print('Sig:',round(self.S_ig(T, P),2),'J/(mol*K)')
         print('Gig:',round(self.G_ig(T, P)/1000,2),'kJ/mol')
-        print('Cv:',round(self.Cvig_SM(T)/1000,2),'kJ/mol')
+        print('Cv:',round(self.Cvig_SM(T),2),'kJ/mol')
         
     #Hig_SM, Gig_SM, Sig_SM, Cvig_SM
     
