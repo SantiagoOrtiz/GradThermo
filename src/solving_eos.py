@@ -17,12 +17,17 @@ sys.path.append(currentdir)
 class EOS:   
 
     def __init__(self, molecule='NH3'):
-        dbpath = os.path.join(currentdir, 'src', 'database.csv')
+        dbpath = os.path.join(currentdir, 'src', 'database_new.csv')
         db_dict = pd.read_csv(dbpath).set_index('Parameter').to_dict()
-        self.ω = db_dict[molecule]['ω']
+        self.ω = db_dict[molecule]['w']
         self.Tc = db_dict[molecule]['Tc']
         self.Pc = db_dict[molecule]['Pc']
-        
+        self.Do = db_dict[molecule]['Do']
+        self.mw = db_dict[molecule]['mw']
+        self.Ov = np.array([db_dict[molecule]['Ov'+str(n)] for n in range(1, 9+1) if db_dict[molecule]['Ov'+str(n)] !=0])
+        self.Or = np.array([db_dict[molecule]['Or'+str(n)] for n in range(1, 3+1) if db_dict[molecule]['Or'+str(n)] !=0])
+        self.sig = db_dict[molecule]['Sigma']
+        self.Wo = db_dict[molecule]['Wo']
         
     def __Z(self, ʋ, P, T, R):
         return P*ʋ/(R*T)
