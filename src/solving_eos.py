@@ -169,7 +169,7 @@ class EOS:
         print('Difference in G, from U v. A calculations (potential error): ',Gig_check) #should equal zero
         print('')
         print('Ideal Gas Thermodynamic values for Chloromethane:')
-        print('Hig:',round(self.H_ig(P)/1000,2),'kJ/mol')
+        print('Hig:',round(self.H_ig(T, P)/1000,2),'kJ/mol')
         print('Sig:',round(self.S_ig(T, P),2),'J/(mol*K)')
         print('Gig:',round(self.G_ig(T, P)/1000,2),'kJ/mol')
         
