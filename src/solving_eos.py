@@ -88,7 +88,6 @@ class EOS:
 
 
     def ΔS_dep(self, T, P, R=8.314):
-        
         ʋ = self.solve_eos(T, P)
         fʋ = lambda ʋ: self.__dPdT(ʋ, T, R) - R/ʋ
         intʋ = quad(fʋ, np.Infinity, ʋ)
@@ -97,7 +96,6 @@ class EOS:
     
     
     def ΔH_dep(self, T, P, R=8.314):
-        
         ʋ = self.solve_eos(T, P)
         fʋ = lambda ʋ: T*self.__dPdT(ʋ, T, R) - self.__PengRobinson(ʋ ,T, P, R)
         intʋ = quad(fʋ, np.Infinity, ʋ)
@@ -107,10 +105,72 @@ class EOS:
     def ΔG_dep(self, T, P, R=8.314):
         return self.ΔH_dep(T, P) - T * self.ΔS_dep(T, P)
     
+    
+    def __Avib(self, T):
+        Ov = self.Ov
+        return np.log(1-np.exp(-Ov/T))
+
+    def __Cv_vib(self, T):
+        Ov = self.Ov
+        return (Ov/T)**2*np.exp(Ov/T)/(np.exp(Ov/T)-1)**2
+
+    def __Svib(self, T):
+        Ov = self.Ov
+        return (Ov/T)/(np.exp(Ov/T)-1) - np.log(1-np.exp(-Ov/T))
+
+    def __Uvib(self, T):
+        Ov = self.Ov
+        return (Ov/T)/(np.exp(Ov/T)-1)
+
+
+    def A_ig(self, T, P, h=6.62607E-34, k=1.38065E-23, Na=6.02214E+23, R=8.3144598):
+        Do = self.Do; mw = self.mw; Or = self.Or; sig = self.sig; Wo = self.Wo
+        vig = self.__ʋig(T, P, R)
+        avib = self.__Avib(T)
+        return -( R*T*np.log( ((2*np.pi*mw*k*T/(h**2))**(3/2))*(vig*np.exp(1)/Na) )
+                  +  R*T*np.log( (1/sig)*((np.pi*(T**3)/(Or[0]*Or[1]*Or[2]))**(1/2)))
+                  + Do*4184 - R*T*np.sum(avib) + np.log(Wo)*R*T )
+
+    def Cv_ig(self, T, R=8.3144598):
+        return R*(3/2+3/2+np.sum(self.__Cv_vib(T)))
+
+    def S_ig(self, T, P, h=6.62607E-34, k=1.38065E-23, Na=6.02214E+23, R=8.3144598):
+        mw = self.mw; Or = self.Or; sig = self.sig; Wo = self.Wo
+        vig = self.__ʋig(T, P, R)
+        svib = self.__Svib(T)
+        Sig = R*( np.log( (2*np.pi*mw*k*T/(h**2))**(3/2) * (vig*np.exp(5/2)/Na))
+                 + np.log( ((1/sig)*(np.pi*(T**3)*np.exp(3)/(Or[0]*Or[1]*Or[2]))**0.5) ) 
+                 + np.log(Wo) + np.sum(svib) )
+        return Sig
+
+    def U_ig(self, T, R=8.3144598):
+        Do = self.Do
+        uvib = self.__Uvib(T)
+        return 3/2*R*T+3/2*R*T-Do*4184+R*T*np.sum(uvib)
+
+    def ʋ_ig(self, T, P, R=8.3144598):
+        return R*T/P
+
+    def H_ig(self, T, P, R=8.3144598):
+        Hig = self.Uig(T, R) + P*self.ʋ_ig(T, P, R)
+        return Hig
+
+    def G_ig(self, T, P, R=8.3144598):
+        Gig = self.H_ig(P, R) - T*self.S_ig(T, P)
+        return Gig
+
+    def check_SMEq(self, T, P):
+        Gig_check = (self.A_ig(T) + P*self.ʋ_ig(T, P))/self.G_ig(T, P)-1
+        print('Difference in G, from U v. A calculations (potential error): ',Gig_check) #should equal zero
+        print('')
+        print('Ideal Gas Thermodynamic values for Chloromethane:')
+        print('Hig:',round(self.H_ig(P)/1000,2),'kJ/mol')
+        print('Sig:',round(self.S_ig(T, P),2),'J/(mol*K)')
+        print('Gig:',round(self.G_ig(T, P)/1000,2),'kJ/mol')
+        
     #Hig_SM, Gig_SM, Sig_SM, Cvig_SM
     
     def ΔH_ig(self, T, R = 8.314):
-        
         T1,T2 = T
         fcp = lambda T: self.Cvig_SM(T) + R
         intcp = quad(fcp, T1, T2)
@@ -118,7 +178,6 @@ class EOS:
         return intcp[0]
         
     def ΔS_ig(self, T,P,  R = 8.314):
-        
         T1,T2 = T
         P1,P2 = P
         fcp = lambda T: (self.Cvig_SM(T) + R)/T
@@ -126,28 +185,21 @@ class EOS:
         return intcp[0] - R*np.log(P2/P1)
     
     def ΔG_ig(self,T, P, R = 8.314):
-        
         return self.ΔH_ig(T) - T*self.ΔS_ig(T,P)
     
     def ΔH_real(self, T, P, R = 8.314):
-        
         T1,T2 = T
         P1,P2 = P
         return -self.ΔH_dep(T1,P1) + self.ΔH_ig(T) + self.ΔH_dep(T2,P2)
           
     def ΔS_real(self, T, P, R = 8.314):
-        
         T1,T2 = T
         P1,P2 = P
         return -self.ΔS_dep(T1,P1) + self.ΔS_ig(T) + self.ΔS_dep(T2,P2) 
     
     def ΔG_real(self,T, P, R = 8.314):
-        
-        
         return self.ΔH_real(T, P) - T*self.ΔS_real(T, P)
-    
+        
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P)
         return peng_robinson
-    
-    
