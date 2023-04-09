@@ -218,3 +218,15 @@ class EOS:
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.314)
         return peng_robinson
+    
+    def get__Avib(self, T):
+        return self.__Avib(T)
+    
+    def get__Cv_vib(self, T):
+        return self.__Cv_vib(T)
+
+    def get__Svib(self, T):
+        return self.__Svib(T)
+
+    def get__Uvib(self, T):
+        return self.__Uvib(T)
