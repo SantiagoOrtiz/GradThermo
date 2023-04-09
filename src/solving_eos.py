@@ -70,7 +70,7 @@ class EOS:
         ʋpol = self.__ʋpol(ʋ, R)
         return R/(ʋ-b) - a/ʋpol*self.__dαdT(T)
         
-    def solve_eos(self, T_, P_, ʋ0=1.0E-2, R=8.314):
+    def solve_eos(self, T_, P_, ʋ0=1.0E-2, R=8.3144598):
         
         if (type(T_) != list) or (type(P_) != list):
             T = np.ravel(np.array([T_]))
@@ -92,7 +92,7 @@ class EOS:
         return np.reshape(ʋ_solution, np.shape(T_))
 
 
-    def ΔS_dep(self, T, P, R=8.314):
+    def ΔS_dep(self, T, P, R=8.3144598):
         ʋ = self.solve_eos(T, P)
         fʋ = lambda ʋ: self.__dPdT(ʋ, T, R) - R/ʋ
         intʋ = quad(fʋ, np.Infinity, ʋ)
@@ -100,14 +100,14 @@ class EOS:
         return ΔS
     
     
-    def ΔH_dep(self, T, P, R=8.314):
+    def ΔH_dep(self, T, P, R=8.3144598):
         ʋ = self.solve_eos(T, P)
         fʋ = lambda ʋ: T*self.__dPdT(ʋ, T, R) - self.__PengRobinson(ʋ ,T, P, R)
         intʋ = quad(fʋ, np.Infinity, ʋ)
         ΔH = intʋ[0] + self.__PengRobinson(ʋ, T, P, R)*ʋ - R*T
         return ΔH
     
-    def ΔG_dep(self, T, P, R=8.314):
+    def ΔG_dep(self, T, P, R=8.3144598):
         return self.ΔH_dep(T, P) - T * self.ΔS_dep(T, P)
     
     
@@ -177,34 +177,34 @@ class EOS:
         
     #Hig_SM, Gig_SM, Sig_SM, Cvig_SM
     
-    def ΔH_ig(self, T, R = 8.314):
+    def ΔH_ig(self, T, R = 8.3144598):
         T1,T2 = T
         fcp = lambda T: self.Cvig_SM(T) + R
         intcp = quad(fcp, T1, T2)
         
         return intcp[0]
         
-    def ΔS_ig(self, T,P,  R = 8.314):
+    def ΔS_ig(self, T,P,  R = 8.3144598):
         T1,T2 = T
         P1,P2 = P
         fcp = lambda T: (self.Cvig_SM(T) + R)/T
         intcp = quad(fcp, T1, T2)
         return intcp[0] - R*np.log(P2/P1)
     
-    def ΔG_ig(self,T, P, R = 8.314):
+    def ΔG_ig(self,T, P, R = 8.3144598):
         return self.ΔH_ig(T) - T*self.ΔS_ig(T,P)
     
-    def ΔH_real(self, T, P, R = 8.314):
+    def ΔH_real(self, T, P, R = 8.3144598):
         T1,T2 = T
         P1,P2 = P
         return -self.ΔH_dep(T1,P1) + self.ΔH_ig(T) + self.ΔH_dep(T2,P2)
           
-    def ΔS_real(self, T, P, R = 8.314):
+    def ΔS_real(self, T, P, R = 8.3144598):
         T1,T2 = T
         P1,P2 = P
         return -self.ΔS_dep(T1,P1) + self.ΔS_ig(T,P) + self.ΔS_dep(T2,P2) 
     
-    def ΔG_real(self,T, P, R = 8.314):
+    def ΔG_real(self,T, P, R = 8.3144598):
         T1, T2 = T
         P1, P2 = P
         
@@ -219,7 +219,7 @@ class EOS:
         return   delGT2 - delGT1
         
     def get__PengRobinson(self):
-        peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.314)
+        peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.3144598)
         return peng_robinson
     
     def get__Avib(self, T):
