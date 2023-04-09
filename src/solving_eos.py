@@ -23,6 +23,7 @@ class EOS:
         self.Tc = db_dict[molecule]['Tc']
         self.Pc = db_dict[molecule]['Pc']
         
+        
     def __Z(self, ʋ, P, T, R):
         return P*ʋ/(R*T)
         
@@ -44,7 +45,7 @@ class EOS:
         b = self.__b(R)
         return np.power(ʋ, 2) + 2*b*ʋ - np.power(b, 2)
         
-    def __PengRobinson(self, ʋ, T, P, R=8.314):               
+    def __PengRobinson(self, ʋ, T, P, R):               
         a = self.__a(R)
         b = self.__b(R)
         ʋpol = self.__ʋpol(ʋ, R)
@@ -95,7 +96,20 @@ class EOS:
         return ΔS
     
     
+    def ΔH_dep(self, P, T, R=8.314):
+        
+        ʋ = self.solve_eos(T, P)
+        fʋ = lambda ʋ: T*self.__dPdT(ʋ, T, R) - self.__PengRobinson(ʋ ,T, P, R)
+        intʋ = quad(fʋ, np.Infinity, ʋ)
+        ΔH = intʋ[0] + self.__PengRobinson(ʋ, T, P, R)*ʋ - R*T
+        return ΔH
+    
+    def ΔG_dep(self, P, T, R=8.314):
+        return self.ΔH_dep(P, T) - T * self.ΔS_dep(P, T)
+    
+    
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P)
         return peng_robinson
+    
     
