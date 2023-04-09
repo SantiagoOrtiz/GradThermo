@@ -127,10 +127,12 @@ class EOS:
         Ov = self.Ov
         return (Ov/T)/(np.exp(Ov/T)-1)
 
+    def ʋ_ig(self, T, P, R=8.3144598):
+        return R*T/P
 
     def A_ig(self, T, P, h=6.62607E-34, k=1.38065E-23, Na=6.02214E+23, R=8.3144598):
         Do = self.Do; mw = self.mw; Or = self.Or; sig = self.sig; Wo = self.Wo
-        vig = self.__ʋig(T, P, R)
+        vig = self.ʋ_ig(T, P, R)
         avib = self.__Avib(T)
         return -( R*T*np.log( ((2*np.pi*mw*k*T/(h**2))**(3/2))*(vig*np.exp(1)/Na) )
                   +  R*T*np.log( (1/sig)*((np.pi*(T**3)/(Or[0]*Or[1]*Or[2]))**(1/2)))
@@ -141,7 +143,7 @@ class EOS:
 
     def S_ig(self, T, P, h=6.62607E-34, k=1.38065E-23, Na=6.02214E+23, R=8.3144598):
         mw = self.mw; Or = self.Or; sig = self.sig; Wo = self.Wo
-        vig = self.__ʋig(T, P, R)
+        vig = self.ʋ_ig(T, P, R)
         svib = self.__Svib(T)
         Sig = R*( np.log( (2*np.pi*mw*k*T/(h**2))**(3/2) * (vig*np.exp(5/2)/Na))
                  + np.log( ((1/sig)*(np.pi*(T**3)*np.exp(3)/(Or[0]*Or[1]*Or[2]))**0.5) ) 
@@ -152,9 +154,6 @@ class EOS:
         Do = self.Do
         uvib = self.__Uvib(T)
         return 3/2*R*T+3/2*R*T-Do*4184+R*T*np.sum(uvib)
-
-    def ʋ_ig(self, T, P, R=8.3144598):
-        return R*T/P
 
     def H_ig(self, T, P, R=8.3144598):
         Hig = self.Uig(T, R) + P*self.ʋ_ig(T, P, R)
