@@ -156,7 +156,7 @@ class EOS:
         return 3/2*R*T+3/2*R*T-Do*4184+R*T*np.sum(uvib)
 
     def H_ig(self, T, P, R=8.3144598):
-        Hig = self.U_ig(T, R) + P*self.__ʋ_ig(T, P, R)
+        Hig = self.U_ig(T, R) + P*self.ʋ_ig(T, P, R)
         return Hig
 
     def G_ig(self, T, P, R=8.3144598):
