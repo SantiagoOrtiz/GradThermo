@@ -89,7 +89,7 @@ class EOS:
         return np.array([*map(evalT, T)])*1E5
     
     
-    def solve_eos(self, T_, P_, R=8.3144598):
+    def solve_eos(self, T_, P_, v0=None, R=8.3144598):
         T = np.ravel(np.array([T_]))
         P = np.ravel(np.array([P_]))
         ʋ_solution = np.zeros_like(T, float)
@@ -100,7 +100,10 @@ class EOS:
             return ʋ_solution
         
         Pv = self.antoine(T)
-        v0 = (R*T/P)*(P <= Pv) + (1.2*self.__b(R))*(P > Pv)
+        if v0:
+            v0 = v0*np.ones_like(T, float)
+        else:
+            v0 = (R*T/P)*(P <= Pv) + (1.2*self.__b(R))*(P > Pv)
         for i, (Ti, Pi, ʋ0) in enumerate(zip(T, P, v0)):
             ʋ_solution[i] = fsolvei(self, Ti, Pi, ʋ0, R)
         return np.reshape(ʋ_solution, np.shape(T_))
