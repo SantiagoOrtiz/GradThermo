@@ -17,18 +17,23 @@ sys.path.append(currentdir)
 class EOS:   
 
     def __init__(self, molecule='NH3'):
-        dbpath = os.path.join(currentdir, 'src', 'database_new.csv')
-        db_dict = pd.read_csv(dbpath).set_index('Parameter').to_dict()
-        self.ω = db_dict[molecule]['w']
-        self.Tc = db_dict[molecule]['Tc']
-        self.Pc = db_dict[molecule]['Pc']
-        self.Do = db_dict[molecule]['Do']
-        self.mw = db_dict[molecule]['mw']
-        self.Ov = np.array([db_dict[molecule]['Ov'+str(n)] for n in range(1, 9+1) if db_dict[molecule]['Ov'+str(n)] !=0])
-        self.Or = np.array([db_dict[molecule]['Or'+str(n)] for n in range(1, 3+1) if db_dict[molecule]['Or'+str(n)] !=0])
-        self.sig = db_dict[molecule]['Sigma']
-        self.Wo = db_dict[molecule]['Wo']
-        
+        critical_path = os.path.join(currentdir, 'src', 'critical.csv')
+        db_critical = pd.read_csv(critical_path).set_index('Parameter').to_dict()
+        self.ω = db_critical[molecule]['w']
+        self.Tc = db_critical[molecule]['Tc']
+        self.Pc = db_critical[molecule]['Pc']
+        stacmech_path = os.path.join(currentdir, 'src', 'stacmech.csv')
+        db_stacmech = pd.read_csv(stacmech_path).set_index('Parameter').to_dict()        
+        self.Do = db_stacmech[molecule]['Do']
+        self.mw = db_stacmech[molecule]['mw']
+        self.Ov = np.array([db_stacmech[molecule]['Ov'+str(n)] for n in range(1, 9+1) if db_stacmech[molecule]['Ov'+str(n)] !=0])
+        self.Or = np.array([db_stacmech[molecule]['Or'+str(n)] for n in range(1, 3+1) if db_stacmech[molecule]['Or'+str(n)] !=0])
+        self.sig = db_stacmech[molecule]['Sigma']
+        self.Wo = db_stacmech[molecule]['Wo']
+        antonine_path = os.path.join(currentdir, 'src', 'antonine.csv')
+        db_antonine = pd.read_csv(antonine_path).set_index('molecule')
+        self.antoineq = db_antonine.loc[molecule]
+
     def __Z(self, ʋ, P, T, R):
         return P*ʋ/(R*T)
         
@@ -64,21 +69,29 @@ class EOS:
         dαdT = 2*(1 + (1-np.sqrt(Tr))*ωpol)*(-ωpol/(2*np.sqrt(Tc*T)))
         return dαdT
   
+    
     def __dPdT(self, ʋ, T, R):    
         a = self.__a(R)
         b = self.__b(R)
         ʋpol = self.__ʋpol(ʋ, R)
         return R/(ʋ-b) - a/ʋpol*self.__dαdT(T)
-        
-    def solve_eos(self, T_, P_, ʋ0=1.0E-2, R=8.3144598):
-        
-        if (type(T_) != list) or (type(P_) != list):
-            T = np.ravel(np.array([T_]))
-            P = np.ravel(np.array([P_]))
-        else:
-            T = np.ravel(T_)
-            P = np.ravel(P_)
-        
+    
+    
+    def antoine(self, T):
+        T = np.array([T]) if type(T) != np.ndarray else T
+
+        def evalT(T, antoineq=self.antoineq):
+            abcrow = antoineq[(antoineq['T1'] < T) & (T < antoineq['T2'])]
+            A = abcrow.iloc[0]['A']
+            B = abcrow.iloc[0]['B']
+            C = abcrow.iloc[0]['C']
+            return np.power(10, A - B/(T + C))
+        return np.array([*map(evalT, T)])*1E5
+    
+    
+    def solve_eos(self, T_, P_, R=8.3144598):
+        T = np.ravel(np.array([T_]))
+        P = np.ravel(np.array([P_]))
         ʋ_solution = np.zeros_like(T, float)
         
         def fsolvei(self, Ti, Pi, ʋ0, R):
@@ -86,9 +99,10 @@ class EOS:
             ʋ_solution = fsolve(eos, ʋ0)[0]
             return ʋ_solution
         
-        for i, (Ti, Pi) in enumerate(zip(T, P)):
-            ʋ_solution[i] = ʋ0 = fsolvei(self, Ti, Pi, ʋ0, R)
-            
+        Pv = self.antoine(T)
+        v0 = (R*T/P)*(P <= Pv) + (1.2*self.__b(R))*(P > Pv)
+        for i, (Ti, Pi, ʋ0) in enumerate(zip(T, P, v0)):
+            ʋ_solution[i] = fsolvei(self, Ti, Pi, ʋ0, R)
         return np.reshape(ʋ_solution, np.shape(T_))
 
 
