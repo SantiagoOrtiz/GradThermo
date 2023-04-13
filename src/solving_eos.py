@@ -261,7 +261,7 @@ class EOS:
     def ΔG_real(self,T, P, R = 8.3144598, phase=None):
         T1, T2 = T
         P1, P2 = P
-        phahse1, phase2 = phase
+        phase1, phase2 = phase
         return   self.G_real(T2, P2,phase=phase2) - self.G_real(T1, P1,phase=phase1)
 
 
