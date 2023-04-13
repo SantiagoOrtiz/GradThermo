@@ -203,7 +203,7 @@ class EOS:
         Gig = self.H_ig(T, P, R) - T*self.S_ig(T, P)
         return Gig
 
-    def check_SMEq(self, T, P):
+    def print_SMEq(self, T, P):
         Gig_check = (self.A_ig(T, P) + P*self.ʋ_ig(T, P))/self.G_ig(T, P)-1
         print('Difference in G, from U v. A calculations (potential error): ',Gig_check) #should equal zero
         print('')
@@ -249,17 +249,20 @@ class EOS:
     def ΔH_real(self, T, P, R = 8.3144598, phase=None):
         T1,T2 = T
         P1,P2 = P
-        return self.H_real(T2, P2, phase=phase) - self.H_real(T1, P1, phase=phase) 
+        phase1, phase2 = phase
+        return self.H_real(T2, P2, phase=phase2) - self.H_real(T1, P1, phase=phase1) 
           
     def ΔS_real(self, T, P, R = 8.3144598, phase=None):
         T1,T2 = T
         P1,P2 = P
-        return -self.S_real(T1,P1,phase=phase) + self.S_real(T2,P2,phase=phase) 
+        phase1, phase2 = phase
+        return -self.S_real(T1,P1,phase=phase2) + self.S_real(T2,P2,phase=phase1) 
     
     def ΔG_real(self,T, P, R = 8.3144598, phase=None):
         T1, T2 = T
         P1, P2 = P
-        return   self.G_real(T2, P2,phase=phase) - self.G_real(T1, P1,phase=phase)
+        phahse1, phase2 = phase
+        return   self.G_real(T2, P2,phase=phase2) - self.G_real(T1, P1,phase=phase1)
 
 
     ################### Providing access to private methods ###################
