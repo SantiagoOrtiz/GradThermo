@@ -239,8 +239,8 @@ class EOS:
     def H_real(self,T, P, R = 8.3144598, phase=None):
         return (self.ΔH_dep(T, P, phase=phase) + self.H_ig(T,P))
 
-    def S_real(self,T, P, R = 8.3144598, phase=None):
-        return self.ΔS_dep(T,P,phase=phase) + self.S_ig(T,P)
+    def S_real(self, T, P, R = 8.3144598, phase=None):
+        return self.ΔS_dep(T,P, phase=phase) + self.S_ig(T,P)
     
     def G_real(self,T, P, R = 8.3144598, phase=None):
         return self.H_real(T, P,phase=phase) - T*self.S_real(T, P,phase=phase)        
@@ -256,7 +256,7 @@ class EOS:
         T1,T2 = T
         P1,P2 = P
         phase1, phase2 = phase
-        return -self.S_real(T1,P1,phase=phase2) + self.S_real(T2,P2,phase=phase1) 
+        return -self.S_real(T1,P1,phase=phase1) + self.S_real(T2,P2,phase=phase2) 
     
     def ΔG_real(self,T, P, R = 8.3144598, phase=None):
         T1, T2 = T
