@@ -124,31 +124,28 @@ class EOS:
         return np.reshape(ʋ_solution, np.shape(T_))
 
 
-    def ΔS_dep(self, T, P, R=8.3144598):
-        ʋ = self.solve_eos(T, P, phase='liquid')
+    def ΔS_dep(self, T, P, R=8.3144598, phase=None):
+        ʋ = self.solve_eos(T, P, phase=phase)
         fʋ = lambda ʋ: self.__dPdT(ʋ, T, R) - R/ʋ
         intʋ = quad(fʋ, np.Infinity, ʋ)
         ΔS = intʋ[0] + R*np.log(self.__Z(ʋ, P, T, R))
         return ΔS
     
     
-    def ΔH_dep(self, T, P, R=8.3144598):
-        vmol1 = self.solve_eos(T,P, phase='liquid')
+    def ΔH_dep(self, T, P, R=8.3144598, phase=None):
+        vmol1 = self.solve_eos(T,P, phase=phase)
         
         b = self.get__b()
         a = self.get__a()
+        k  = self.get__α(T) - T*self.get__dαdT(T)
         root_2 = np.power(2,0.5)
-        
-        k  = self.get__α(T) - T*self.get__dαdT(T) 
-        
         kk = k * a/(b*2*root_2) 
-        
         int21 = (np.log((vmol1 + b*(1 - root_2))/(vmol1 + b*(1 + root_2))))
-             
         return  kk*(int21) + P*vmol1 - R*T
     
-    def ΔG_dep(self, T, P, R=8.3144598):
-        return self.G_real(T, P) -  self.G_ig(T, P)
+    
+    def ΔG_dep(self, T, P, R=8.3144598, phase=None):
+        return self.G_real(T, P, phase=phase) -  self.G_ig(T, P)
     
     
     def __Avib(self, T):
@@ -232,29 +229,29 @@ class EOS:
         P1, P2 = P
         return self.G_ig(T2,P2) - self.G_ig(T1,P1)
     
-    def H_real(self,T, P, R = 8.3144598):
-        return (self.ΔH_dep(T, P) + self.H_ig(T,P))
+    def H_real(self,T, P, R = 8.3144598, phase=None):
+        return (self.ΔH_dep(T, P, phase=phase) + self.H_ig(T,P))
 
-    def S_real(self,T, P, R = 8.3144598):
-        return self.ΔS_dep(T,P) + self.S_ig(T,P)
+    def S_real(self,T, P, R = 8.3144598, phase=None):
+        return self.ΔS_dep(T,P,phase=phase) + self.S_ig(T,P)
     
-    def G_real(self,T, P, R = 8.3144598):
-        return self.H_real(T, P) - T*self.S_real(T, P)        
+    def G_real(self,T, P, R = 8.3144598, phase=None):
+        return self.H_real(T, P,phase=phase) - T*self.S_real(T, P,phase=phase)        
     
-    def ΔH_real(self, T, P, R = 8.3144598):
+    def ΔH_real(self, T, P, R = 8.3144598, phase=None):
         T1,T2 = T
         P1,P2 = P
-        return self.H_real(T2, P2) - self.H_real(T1, P1) 
+        return self.H_real(T2, P2, phase=phase) - self.H_real(T1, P1, phase=phase) 
           
-    def ΔS_real(self, T, P, R = 8.3144598):
+    def ΔS_real(self, T, P, R = 8.3144598, phase=None):
         T1,T2 = T
         P1,P2 = P
-        return -self.S_real(T1,P1) + self.S_real(T2,P2) 
+        return -self.S_real(T1,P1,phase=phase) + self.S_real(T2,P2,phase=phase) 
     
-    def ΔG_real(self,T, P, R = 8.3144598):
+    def ΔG_real(self,T, P, R = 8.3144598, phase=None):
         T1, T2 = T
         P1, P2 = P
-        return   self.G_real(T2, P2) - self.G_real(T1, P1)
+        return   self.G_real(T2, P2,phase=phase) - self.G_real(T1, P1,phase=phase)
         
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.3144598)
