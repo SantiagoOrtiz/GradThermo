@@ -77,21 +77,30 @@ class EOS:
         return R/(ʋ-b) - a/ʋpol*self.__dαdT(T)
     
     
-    def antoine(self, T):
-        T = np.array([T]) if type(T) != np.ndarray else T
+    def antoine(self, T, P=None):
+        T = np.array(T) if type(T) != np.ndarray else T
+        if np.array(P).any():
+            P = np.array([P]) if type(P) != np.ndarray else P
+        else:
+            P = 101.325E3*np.ones_like(T, float)
     
-        def evalT(T, antoineq=self.antoineq):
-            abcrow = antoineq[(antoineq['T1'] < T) & (T < antoineq['T2'])]
-            A = abcrow.iloc[0]['A']
-            B = abcrow.iloc[0]['B']
-            C = abcrow.iloc[0]['C']
-            return np.power(10, A - B/(T + C))
-        return np.array([*map(evalT, T)])*1E5
+        def evalT(TP, antoineq=self.antoineq):
+            T, P = TP
+            if (T < self.Tc) and (P < self.Pc):
+                abcrow = antoineq[(antoineq['T1'] < T) & (T < antoineq['T2'])]
+                A = abcrow.iloc[0]['A']
+                B = abcrow.iloc[0]['B']
+                C = abcrow.iloc[0]['C']
+                return np.power(10, A - B/(T + C))
+            else:
+                print(f'Some of the given T and P values lie outside the range of critical conditions: Tc={self.Tc} & Pc={self.Pc}')
+                return self.Pc/1E5
+        return np.array([*map(evalT, [*zip(T, P)])])*1E5
     
 
     def solve_eos(self, T_, P_, phase=None, R=8.3144598):
-        T = np.ravel(np.array([T_]))
-        P = np.ravel(np.array([P_]))
+        T = np.ravel(np.array(T_))
+        P = np.ravel(np.array(P_))
         ʋ_solution = np.zeros_like(T, float)
         
         def fsolvei(self, Ti, Pi, ʋ0, R):
@@ -106,8 +115,8 @@ class EOS:
                 v0 = (R*T/P)
             else:
                 raise Exception("phase argument only allows 'liquid' or 'gas'")
-        else:
-            Pv = self.antoine(T)
+        else:           
+            Pv = self.antoine(T, P)
             v0 = (R*T/P)*(P <= Pv) + (1.2*self.__b(R))*(P > Pv)
 
         for i, (Ti, Pi, ʋ0) in enumerate(zip(T, P, v0)):
