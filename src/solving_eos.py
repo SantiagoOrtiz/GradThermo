@@ -79,7 +79,7 @@ class EOS:
     
     def antoine(self, T):
         T = np.array([T]) if type(T) != np.ndarray else T
-
+    
         def evalT(T, antoineq=self.antoineq):
             abcrow = antoineq[(antoineq['T1'] < T) & (T < antoineq['T2'])]
             A = abcrow.iloc[0]['A']
@@ -88,32 +88,35 @@ class EOS:
             return np.power(10, A - B/(T + C))
         return np.array([*map(evalT, T)])*1E5
     
-    
-    def solve_eos(self, T_, P_, v0=None, phase = "liquid",R=8.3144598):
+
+    def solve_eos(self, T_, P_, phase=None, R=8.3144598):
         T = np.ravel(np.array([T_]))
         P = np.ravel(np.array([P_]))
         ʋ_solution = np.zeros_like(T, float)
         
-        def fsolvei(self, Ti, Pi, v0, R):
+        def fsolvei(self, Ti, Pi, ʋ0, R):
             eos = lambda ʋ: self.__PengRobinson(ʋ, Ti, Pi, R)
-            ʋ_solution = fsolve(eos, v0)[0]
+            ʋ_solution = fsolve(eos, ʋ0)[0]
             return ʋ_solution
         
-        #Pv = self.antoine(T)
-        # if v0:
-        #     v0 = v0*np.ones_like(T, float)
-        # else:
-        #     v0 = (R*T/P)*(P <= Pv) + (1.2*self.__b(R))*(P > Pv)
-        
-        v0 = (R*T/P)*(phase.lower() == "gas") + (1.2*self.__b(R))*(phase.lower() == "liquid")
-        
-        for i, (Ti, Pi, v0) in enumerate(zip(T, P, v0)):
-            ʋ_solution[i] = fsolvei(self, Ti, Pi, v0, R)
+        if phase:
+            if (phase.lower() == 'liquid') or (phase.lower() == 'l'):
+                v0 = 1.2*self.__b(R)*np.ones_like(T, float)
+            elif (phase.lower() == 'gas') or (phase.lower() == 'g'):
+                v0 = (R*T/P)
+            else:
+                raise Exception("phase argument only allows 'liquid' or 'gas'")
+        else:
+            Pv = self.antoine(T)
+            v0 = (R*T/P)*(P <= Pv) + (1.2*self.__b(R))*(P > Pv)
+
+        for i, (Ti, Pi, ʋ0) in enumerate(zip(T, P, v0)):
+            ʋ_solution[i] = fsolvei(self, Ti, Pi, ʋ0, R)
         return np.reshape(ʋ_solution, np.shape(T_))
 
 
     def ΔS_dep(self, T, P, R=8.3144598):
-        ʋ = self.solve_eos(T, P)
+        ʋ = self.solve_eos(T, P, phase='liquid')
         fʋ = lambda ʋ: self.__dPdT(ʋ, T, R) - R/ʋ
         intʋ = quad(fʋ, np.Infinity, ʋ)
         ΔS = intʋ[0] + R*np.log(self.__Z(ʋ, P, T, R))
@@ -121,7 +124,7 @@ class EOS:
     
     
     def ΔH_dep(self, T, P, R=8.3144598):
-        vmol1 = self.solve_eos(T,P)
+        vmol1 = self.solve_eos(T,P, phase='liquid')
         
         b = self.get__b()
         a = self.get__a()
