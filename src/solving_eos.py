@@ -232,7 +232,7 @@ class EOS:
     def ΔH_real(self, T, P, R = 8.3144598):
         T1,T2 = T
         P1,P2 = P
-        return self.H_real(T1, P1) - self.H_real(T2, P2) + T1*self.S_real(T1, P1) - T2* self.S_real(T1, P1)
+        return self.H_real(T2, P2) - self.H_real(T1, P1) 
           
     def ΔS_real(self, T, P, R = 8.3144598):
         T1,T2 = T
