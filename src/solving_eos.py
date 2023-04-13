@@ -34,6 +34,7 @@ class EOS:
         db_antonine = pd.read_csv(antonine_path).set_index('molecule')
         self.antoineq = db_antonine.loc[molecule]
 
+
     def __Z(self, ʋ, P, T, R):
         return P*ʋ/(R*T)
         
@@ -67,8 +68,7 @@ class EOS:
         Tr = T/Tc        
         ωpol = self.__fω()
         dαdT = 2*(1 + (1-np.sqrt(Tr))*ωpol)*(-ωpol/(2*np.sqrt(Tc*T)))
-        return dαdT
-  
+        return dαdT  
     
     def __dPdT(self, ʋ, T, R):    
         a = self.__a(R)
@@ -77,6 +77,8 @@ class EOS:
         return R/(ʋ-b) - a/ʋpol*self.__dαdT(T)
     
     
+    ################ Solver for Peng-Robinson Equation of State ################
+
     def antoine(self, T, P=None):
         T = np.array(T) if type(T) != np.ndarray else T
         if np.array(P).any():
@@ -124,6 +126,8 @@ class EOS:
         return np.reshape(ʋ_solution, np.shape(T_))
 
 
+    ##################### Departure functions calculations ##################### 
+
     def ΔS_dep(self, T, P, R=8.3144598, phase=None):
         ʋ = self.solve_eos(T, P, phase=phase)
         fʋ = lambda ʋ: self.__dPdT(ʋ, T, R) - R/ʋ
@@ -131,10 +135,8 @@ class EOS:
         ΔS = intʋ[0] + R*np.log(self.__Z(ʋ, P, T, R))
         return ΔS
     
-    
     def ΔH_dep(self, T, P, R=8.3144598, phase=None):
         vmol1 = self.solve_eos(T,P, phase=phase)
-        
         b = self.get__b()
         a = self.get__a()
         k  = self.get__α(T) - T*self.get__dαdT(T)
@@ -143,11 +145,12 @@ class EOS:
         int21 = (np.log((vmol1 + b*(1 - root_2))/(vmol1 + b*(1 + root_2))))
         return  kk*(int21) + P*vmol1 - R*T
     
-    
     def ΔG_dep(self, T, P, R=8.3144598, phase=None):
         return self.G_real(T, P, phase=phase) -  self.G_ig(T, P)
     
-    
+
+    ############# Ideal gas calculations from statistical mechanics ############# 
+
     def __Avib(self, T):
         Ov = self.Ov
         return np.log(1-np.exp(-Ov/T))
@@ -210,10 +213,11 @@ class EOS:
         print('Hig:',round(self.H_ig(T, P)/1000,6),'kJ/mol')
         print('Sig:',round(self.S_ig(T, P),10),'J/(mol*K)')
         print('Gig:',round(self.G_ig(T, P)/1000,6),'kJ/mol')
-        print('Cv:',round(self.Cvig_SM(T),8),'kJ/mol')
-        
-    #Hig_SM, Gig_SM, Sig_SM, Cvig_SM
+        print('Cv:',round(self.Cvig_SM(T),8),'kJ/mol')        
     
+    
+    ######### ΔH, ΔS, ΔG, for IDEAL process from (P1, T1) to (P2, T2) #########
+
     def ΔH_ig(self, T, P, R = 8.3144598):
         T1,T2 = T
         P1,P2 = P       
@@ -229,6 +233,9 @@ class EOS:
         P1, P2 = P
         return self.G_ig(T2,P2) - self.G_ig(T1,P1)
     
+
+    ########## ΔH, ΔS, ΔG, for REAL process from (P1, T1) to (P2, T2) ##########
+
     def H_real(self,T, P, R = 8.3144598, phase=None):
         return (self.ΔH_dep(T, P, phase=phase) + self.H_ig(T,P))
 
@@ -237,6 +244,7 @@ class EOS:
     
     def G_real(self,T, P, R = 8.3144598, phase=None):
         return self.H_real(T, P,phase=phase) - T*self.S_real(T, P,phase=phase)        
+    
     
     def ΔH_real(self, T, P, R = 8.3144598, phase=None):
         T1,T2 = T
@@ -252,7 +260,10 @@ class EOS:
         T1, T2 = T
         P1, P2 = P
         return   self.G_real(T2, P2,phase=phase) - self.G_real(T1, P1,phase=phase)
-        
+
+
+    ################### Providing access to private methods ###################
+    
     def get__PengRobinson(self):
         peng_robinson = lambda ʋ, T, P: self.__PengRobinson(ʋ, T, P, R=8.3144598)
         return peng_robinson
