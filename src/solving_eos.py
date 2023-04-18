@@ -88,19 +88,19 @@ class EOS:
     
         def evalT(TP, antoineq=self.antoineq):
             T, P = TP
-            if (T > antoineq['T1'][0]) and (T < self.Tc) and (P < self.Pc):
+            if (T >= antoineq['T1'][0]) and (T < self.Tc) and (P < self.Pc):
                 abcrow = antoineq[(antoineq['T1'] <= T) & (T < antoineq['T2'])]
                 A = abcrow.iloc[0]['A']
                 B = abcrow.iloc[0]['B']
                 C = abcrow.iloc[0]['C']
                 return np.power(10, A - B/(T + C))
-            elif T < antoineq['T1'][0]:
-                print(f'The provided temperatures are out of bounds in the Antonine Equation. : T<{antoineq["T1"]}')
+            elif T < antoineq['T1'][0]:                
+                print('The provided temperatures are out of bounds in the Antonine Equation.')
+                raise Exception(f" If the Temperature < {antoineq['T1'][0]}, a phase has to be provided.")
             else:
                 print(f'Some of the given T and P values lie outside (>) the range of critical conditions: Tc={self.Tc} & Pc={self.Pc}')
-                return self.Pc/1E5
+                return self.Pc/1E5        
         return np.array([*map(evalT, [*zip(T, P)])])*1E5
-    
 
     def solve_eos(self, T_, P_, phase=None, R=8.3144598):
         T = np.ravel(np.array(T_))
