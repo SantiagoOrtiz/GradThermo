@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Apr  8 11:27:55 2023
-@author: santi
+@author: Santi, Rama and Andreas
 """
 
 import numpy as np
